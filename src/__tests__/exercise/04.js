@@ -7,9 +7,10 @@ import userEvent from '@testing-library/user-event'
 import faker from 'faker';
 import Login from '../../components/login'
 
-const buildLoginForm = () => ({
+const buildLoginForm = (overrides) => ({
   username: faker.internet.userName(),
-  password: faker.internet.password()
+  password: faker.internet.password(),
+  ...overrides
 });
 
 test('submitting the form calls onSubmit with username and password', () => {  
@@ -29,7 +30,7 @@ test('submitting the form calls onSubmit with username and password', () => {
   userEvent.click(button);
   
   expect(handleSubmit).toHaveBeenCalledWith({username, password});
-  expect(handleSubmit).toHaveBeenCalledTimes(1);
+  expect(handleSubmit).toHaveBeenCalledTimes(1);  
 })
 
 /*
