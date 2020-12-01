@@ -45,3 +45,29 @@ test(`logging in displays the user's username`, async () => {
   // we render the username.
   expect(screen.getByText(username)).toBeInTheDocument();
 });
+
+test(`omitting the password results in an error`, async () => {
+  render(<Login />);
+
+  const {username} = buildLoginForm();
+
+  userEvent.type(screen.getByLabelText(/username/i), username);
+  // omitting passowrd
+  userEvent.click(screen.getByRole('button', {name: /submit/i}));
+  await waitForElementToBeRemoved(() => screen.getByLabelText(/loading/i));
+
+  expect(screen.getByRole('alert')).toHaveTextContent(/password required/i);
+});
+
+test(`omitting the username results in an error`, async () => {
+  render(<Login />);
+
+  const {password} = buildLoginForm();
+
+  userEvent.type(screen.getByLabelText(/password/i), password);
+  // omitting username
+  userEvent.click(screen.getByRole('button', {name: /submit/i}));
+  await waitForElementToBeRemoved(() => screen.getByLabelText(/loading/i));
+
+  expect(screen.getByRole('alert')).toHaveTextContent(/username required/i);
+});
