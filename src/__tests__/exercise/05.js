@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {build, fake} from '@jackfranklin/test-data-bot';
+import {rest} from 'msw';
 import {setupServer} from 'msw/node';
 import Login from '../../components/login-submission';
 import {handlers} from '../../test/server-handlers';
@@ -23,10 +24,9 @@ const buildLoginForm = build({
 // 🐨 get the server setup with an async function to handle the login POST request:
 const server = setupServer(...handlers);
 
-// 🐨 before all the tests, start the server with `server.listen()`
 beforeAll(() => server.listen());
-// 🐨 after all the tests, stop the server with `server.close()`
 afterAll(() => server.close());
+afterEach(() => server.resetHandlers());
 
 test(`logging in displays the user's username`, async () => {
   render(<Login />);
@@ -75,4 +75,21 @@ test(`omitting the username results in an error`, async () => {
   expect(screen.getByRole('alert').textContent).toMatchInlineSnapshot(
     `"username required"`,
   );
+});
+
+test(`unknown server error displays the error message`, async () => {
+  const errorMsg = `Something Wrong`;
+  server.use(
+    rest.post(
+      'https://auth-provider.example.com/api/login',
+      async (req, res, ctx) => {
+        return res(ctx.status(500), ctx.json({message: errorMsg}));
+      },
+    ),
+  );
+
+  render(<Login />);
+  userEvent.click(screen.getByRole('button', {name: /submit/i}));
+  await waitForElementToBeRemoved(() => screen.getByLabelText(/loading/i));
+  expect(screen.getByRole(`alert`)).toHaveTextContent(errorMsg);
 });
