@@ -36,9 +36,9 @@ test('displays the users current location', async () => {
   };
 
   const { promise, resolve } = deferred();
-    window.navigator.geolocation.getCurrentPosition.mockImplementation(successCallback => {
+    window.navigator.geolocation.getCurrentPosition.mockImplementation(callback => {
     promise.then(() => {
-      successCallback(fakePosition)
+      callback(fakePosition)
     });
   });
 
@@ -46,9 +46,10 @@ test('displays the users current location', async () => {
   
   expect(screen.getByLabelText(/^loading/i)).toBeInTheDocument();
 
-
-  resolve();
-  await act(() => promise);
+  await act(async () => {
+    resolve();
+    await act(() => promise);
+  });
 
   expect(screen.queryByLabelText(/^loading/i)).not.toBeInTheDocument();
   expect(screen.getByText(/latitude/i)).toHaveTextContent(`Latitude: ${fakePosition.coords.latitude}`);
